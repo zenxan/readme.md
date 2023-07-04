@@ -22,4 +22,5 @@ void ICPMatcher2D::AddResidualBlock(
   cv::Mat matAt(3, constraints.size(), CV_64F, cv::Scalar::all(0));
   cv::transpose(matA, matAt);
   matAtA += matAt * matA;
-  matAtB += matAt * 
+  matAtB += matAt * matB;
+}
