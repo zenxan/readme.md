@@ -1,14 +1,26 @@
+void ICPMatcher2D::AddResidualBlock(
+    const std::vector<Constraint2D>& constraints, double weight,
+    cv::Mat& matAtA, cv::Mat& matAtB) {
+  double srz = sin(match_pose_[2]);
+  double crz = cos(match_pose_[2]);
 
-double LineSegment2d::GetPerpendicularFoot(const Vec2d &point,
-                                           Vec2d *const foot_point) const {
-  CHECK_NOTNULL(foot_point);
-  if (length_ <= kMathEpsilon) {
-    *foot_point = start_;
-    return point.DistanceTo(start_);
+  cv::Mat matA(constraints.size(), 3, CV_64F, cv::Scalar::all(0));
+  cv::Mat matB(constraints.size(), 1, CV_64F, cv::Scalar::all(0));
+  for (size_t i = 0; i < constraints.size(); ++i) {
+    const auto& position = constraints[i].position;
+    const auto& direction = constraints[i].direction;
+    const double arz =
+        (-srz * position.x() - crz * position.y()) * direction.x() +
+        (crz * position.x() - srz * position.y()) * direction.y();
+
+    matA.at<double>(i, 0) = weight * direction.x();
+    matA.at<double>(i, 1) = weight * direction.y();
+    matA.at<double>(i, 2) = weight * arz;
+    matB.at<double>(i, 0) = weight * constraints[i].distance;
   }
-  const double x0 = point.x() - start_.x();
-  const double y0 = point.y() - start_.y();
-  const double proj = x0 * unit_direction_.x() + y0 * unit_direction_.y();
-  *foot_point = start_ + unit_direction_ * proj;
-  return std::abs(x0 * unit_direction_.y() - y0 * unit_direction_.x());
+
+  cv::Mat matAt(3, constraints.size(), CV_64F, cv::Scalar::all(0));
+  cv::transpose(matA, matAt);
+  matAtA += matAt * matA;
+  matAtB += matAt * matB;
 }
