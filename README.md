@@ -1,30 +1,29 @@
 import folium
+from folium import plugins
 
-def plot_trajectory(coords):
-    # Create a map centered on the first coordinate
-    map_center = [coords[0][0], coords[0][1]]
-    my_map = folium.Map(location=map_center, zoom_start=15)
+def plot_trajectory_with_amap(coordinates):
+    # 创建一个基本地图对象
+    map_center = [sum(p[0] for p in coordinates) / len(coordinates), 
+                  sum(p[1] for p in coordinates) / len(coordinates)]
+    m = folium.Map(location=map_center, zoom_start=14, control_scale=True)
 
-    # Plot the trajectory as a polyline on the map
-    folium.PolyLine(coords, color='blue').add_to(my_map)
+    # 使用高德地图插件
+    plugins.TileLayer('http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', 
+                      attr='AutoNavi', name='AutoNavi').add_to(m)
 
-    # Mark the starting and ending points with markers
-    folium.Marker(location=coords[0], popup='Start', icon=folium.Icon(color='green')).add_to(my_map)
-    folium.Marker(location=coords[-1], popup='End', icon=folium.Icon(color='red')).add_to(my_map)
+    # 添加轨迹到地图上
+    folium.PolyLine(locations=coordinates, color='blue').add_to(m)
 
-    # Display the map
-    return my_map
+    return m
 
-# Example coordinates (replace this with your own list of coordinates)
-coordinates_sequence = [
-    (latitude1, longitude1),
-    (latitude2, longitude2),
-    (latitude3, longitude3),
-    # Add more coordinates as needed
-]
+if __name__ == "__main__":
+    # 示例经纬度坐标序列
+    coordinates_sequence = [
+        (latitude_1, longitude_1),
+        (latitude_2, longitude_2),
+        # 添加更多坐标点...
+    ]
 
-# Call the function to plot the trajectory
-map_with_trajectory = plot_trajectory(coordinates_sequence)
-
-# Save the map as an HTML file
-map_with_trajectory.save('trajectory_map.html')
+    # 绘制轨迹并保存地图
+    map_object = plot_trajectory_with_amap(coordinates_sequence)
+    map_object.save("trajectory_map_amap.html")
