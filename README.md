@@ -1,22 +1,18 @@
-// gnss pose constraint
-  if (options_.gnss_translation_weight > 0.0 ||
-      options_.gnss_rotation_weight > 0.0) {
-    cv::Mat matA(3, 3, CV_64F, cv::Scalar::all(0));
-    cv::Mat matB(3, 1, CV_64F, cv::Scalar::all(0));
+import folium
 
-    matA.at<double>(0, 0) = options_.gnss_translation_weight;
-    matA.at<double>(1, 1) = options_.gnss_translation_weight;
-    matA.at<double>(2, 2) = options_.gnss_rotation_weight;
+# 经纬度坐标序列
+coordinates = [
+    (40.7128, -74.0060),  # 纽约市
+    (34.0522, -118.2437),  # 洛杉矶
+    # 可以添加更多的经纬度坐标
+]
 
-    matB.at<double>(0, 0) =
-        options_.gnss_translation_weight * (match_pose_[0] - gnss_pose_[0]);
-    matB.at<double>(1, 0) =
-        options_.gnss_translation_weight * (match_pose_[1] - gnss_pose_[1]);
-    matB.at<double>(2, 0) =
-        options_.gnss_rotation_weight * (match_pose_[2] - gnss_pose_[2]);
+# 创建一个地图对象
+map_center = coordinates[0]  # 使用第一个坐标作为地图中心
+map_obj = folium.Map(location=map_center, zoom_start=5)
 
-    cv::Mat matAt(3, 3, CV_64F, cv::Scalar::all(0));
-    cv::transpose(matA, matAt);
-    matAtA += matAt * matA;
-    matAtB -= matAt * matB;
-  }
+# 在地图上添加轨迹
+folium.PolyLine(locations=coordinates, color='blue').add_to(map_obj)
+
+# 显示地图
+map_obj.save('map_with_trajectory.html')
