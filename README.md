@@ -38,3 +38,37 @@ beijing_coordinates = [
     (39.8099, 116.2673),  # 房山区
     (39.7728, 116.3683)   # 密云区
 ]
+
+
+import sys
+from cyber_py import cyber
+
+def bag_reader(file_path):
+    # Initialize cyber node
+    cyber.init()
+
+    # Create a reader to read the bag file
+    bag = cyber.Bag(file_path)
+
+    # Get the topic list from the bag
+    topic_list = bag.get_topics()
+
+    # Loop through each topic and read the messages
+    for topic_name in topic_list:
+        topic = bag.get_topic(topic_name)
+        for msg in topic:
+            # Process the message data
+            # In this example, we will just print the topic name and the message data
+            print(f"Topic: {topic_name}, Message: {msg}")
+
+    # Close the bag
+    bag.close()
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python bag_reader.py <bag_file_path>")
+        sys.exit(1)
+
+    bag_file_path = sys.argv[1]
+    bag_reader(bag_file_path)
+
