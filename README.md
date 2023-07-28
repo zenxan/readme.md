@@ -78,3 +78,16 @@ import collections
 _CYBER_RECORD = importlib.import_module('_cyber_record_wrapper')
 PyBagMessage = collections.namedtuple('PyBagMessage',
                                       'topic message data_type timestamp')
+
+
+def read_messages(self, start_time=0, end_time=18446744073709551615):
+    while True:
+        message = _CYBER_RECORD.PyRecordReader_ReadMessage(
+            self.record_reader, start_time, end_time)
+
+        if not message["end"]:
+            yield PyBagMessage(message["channel_name"], message["data"],
+                               message["data_type"], message["timestamp"])
+        else:
+            # print "No message more."
+            break
