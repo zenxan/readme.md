@@ -72,3 +72,9 @@ if __name__ == "__main__":
     bag_file_path = sys.argv[1]
     bag_reader(bag_file_path)
 
+    
+import importlib
+import collections
+_CYBER_RECORD = importlib.import_module('_cyber_record_wrapper')
+PyBagMessage = collections.namedtuple('PyBagMessage',
+                                      'topic message data_type timestamp')
