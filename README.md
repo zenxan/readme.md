@@ -1,93 +1,33 @@
-def plot_trajectory(coordinates):
-    # 创建一个基本地图对象
-    map_center = [sum(p[0] for p in coordinates) / len(coordinates), 
-                  sum(p[1] for p in coordinates) / len(coordinates)]
-    m = folium.Map(location=map_center, zoom_start=14)
+import numpy as np
+import matplotlib.pyplot as plt
 
-    # 添加轨迹到地图上
-    folium.PolyLine(locations=coordinates, color='blue').add_to(m)
+def bezier_curve(p0, p1, p2, t):
+    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
 
-    return m
+# 定义直线a和b的起始和结束点
+start_a = np.array([0, 0])
+end_a = np.array([3, 0])
+start_b = np.array([5, 2])
+end_b = np.array([5, 5])
 
-if __name__ == "__main__":
-    # 示例经纬度坐标序列
-    # 请替换以下坐标序列为您自己的经纬度坐标
-    coordinates_sequence = [
-        (latitude_1, longitude_1),
-        (latitude_2, longitude_2),
-        # 添加更多坐标点...
-    ]
+# 计算曲线c的控制点，使其和a、b的切线平滑连接
+# control_point_1 = start_a + (end_a - start_a) * 0.33
+# control_point_2 = start_b + (end_b - start_b) * 0.33
+control_point_1 = np.array([5, 0])
 
-    # 绘制轨迹并保存地图
-    map_object = plot_trajectory(coordinates_sequence)
-    map_object.save("trajectory_map.html")
+# 生成贝塞尔曲线上的点
+num_points = 100
+t_values = np.linspace(0, 1, num_points)
+curve_points = np.array([bezier_curve(end_a, control_point_1, start_b, t) for t in t_values])
 
-
-beijing_coordinates = [
-    (39.9042, 116.4074),  # 北京市中心
-    (39.9496, 116.4336),  # 东城区
-    (39.9232, 116.3962),  # 西城区
-    (39.9624, 116.2984),  # 海淀区
-    (39.8950, 116.4977),  # 朝阳区
-    (39.8837, 116.2654),  # 丰台区
-    (39.9255, 116.5544),  # 石景山区
-    (39.9900, 116.4117),  # 通州区
-    (39.8983, 116.3863),  # 顺义区
-    (40.0027, 116.4074),  # 昌平区
-    (39.7392, 116.3370),  # 大兴区
-    (39.8099, 116.2673),  # 房山区
-    (39.7728, 116.3683)   # 密云区
-]
-
-
-import sys
-from cyber_py import cyber
-
-def bag_reader(file_path):
-    # Initialize cyber node
-    cyber.init()
-
-    # Create a reader to read the bag file
-    bag = cyber.Bag(file_path)
-
-    # Get the topic list from the bag
-    topic_list = bag.get_topics()
-
-    # Loop through each topic and read the messages
-    for topic_name in topic_list:
-        topic = bag.get_topic(topic_name)
-        for msg in topic:
-            # Process the message data
-            # In this example, we will just print the topic name and the message data
-            print(f"Topic: {topic_name}, Message: {msg}")
-
-    # Close the bag
-    bag.close()
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python bag_reader.py <bag_file_path>")
-        sys.exit(1)
-
-    bag_file_path = sys.argv[1]
-    bag_reader(bag_file_path)
-
-    
-import importlib
-import collections
-_CYBER_RECORD = importlib.import_module('_cyber_record_wrapper')
-PyBagMessage = collections.namedtuple('PyBagMessage',
-                                      'topic message data_type timestamp')
-
-
-def read_messages(self, start_time=0, end_time=18446744073709551615):
-    while True:
-        message = _CYBER_RECORD.PyRecordReader_ReadMessage(
-            self.record_reader, start_time, end_time)
-
-        if not message["end"]:
-            yield PyBagMessage(message["channel_name"], message["data"],
-                               message["data_type"], message["timestamp"])
-        else:
-            # print "No message more."
-            break
+# 绘制直线a、b和曲线c
+plt.plot([start_a[0], end_a[0]], [start_a[1], end_a[1]], label='Line a')
+plt.plot([start_b[0], end_b[0]], [start_b[1], end_b[1]], label='Line b')
+plt.plot(curve_points[:, 0], curve_points[:, 1], label='Curve c')
+plt.scatter([start_a[0], end_a[0], start_b[0], end_b[0]], [start_a[1], end_a[1], start_b[1], end_b[1]], color='red', label='Connection Points')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Smooth Connection between Lines')
+plt.legend()
+plt.grid()
+plt.show()
